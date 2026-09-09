@@ -47,7 +47,7 @@ docker compose up -d
 
 ```bash
 docker compose logs -f checker-person1
-# або напряму з файлу
+
 tail -f logs/person1.log
 ```
 
