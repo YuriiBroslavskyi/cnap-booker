@@ -1,0 +1,13 @@
+configs/*.yaml
+!configs/*.example.yaml
+
+logs/*.log
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+.DS_Store
+
+*.env

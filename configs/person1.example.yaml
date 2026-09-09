@@ -1,0 +1,15 @@
+name: person1
+
+full_name: "Прізвище Ім'я"
+phone_digits: "732957199" 
+email: "example@mail.com"
+
+job_group_name: "Отримати готовий результат"
+job_name: "Паспорт громадянина України (ID-картка) / для виїзду за кордон"
+
+preferred_branch_guid: "ade47bf5-2192-4b6e-b77c-2fa65cdb06a2"
+preferred_branch_name: "пр.Ч.Калини, 72 А Терпідрозділ ЦНАП"
+
+preferred_hours: ["09:00", "12:00"]
+
+check_interval_seconds: 60

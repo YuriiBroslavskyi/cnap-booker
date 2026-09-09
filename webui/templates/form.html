@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>CNAP Booker — Профілі</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #222; }
+        h1 { font-size: 22px; }
+        label { display: block; margin-top: 14px; font-weight: 600; font-size: 14px; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; font-size: 14px; }
+        button { margin-top: 20px; padding: 10px 20px; font-size: 15px; cursor: pointer; }
+        .hint { color: #777; font-size: 12px; margin-top: 2px; }
+        .profiles { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .profile-item { padding: 6px 0; }
+        code { background: #f2f2f2; padding: 1px 4px; }
+    </style>
+</head>
+<body>
+    <h1>Створити профіль для пошуку запису в ЦНАП</h1>
+    <p>Послуга фіксована: <code>Паспорт громадянина України (ID-картка) / для виїзду за кордон</code></p>
+
+    <form method="post" action="/create">
+        <label>Ключ профілю (латиницею, без пробілів)</label>
+        <input type="text" name="name" placeholder="person1" required>
+        <div class="hint">Використовується як назва файлу конфігу та контейнера</div>
+
+        <label>ПІБ</label>
+        <input type="text" name="full_name" placeholder="Прізвище Ім'я" required>
+
+        <label>Телефон (9 цифр після 380)</label>
+        <input type="text" name="phone_digits" placeholder="732957199" pattern="[0-9]{9}" required>
+        <div class="hint">Без "+380", лише цифри — скрипт сам додасть код країни</div>
+
+        <label>Email</label>
+        <input type="email" name="email" required>
+
+        <label>Бажаний підрозділ (опційно)</label>
+        <select name="preferred_branch_guid" id="branch-select" onchange="updateBranchName()">
+            <option value="" data-name="">— будь-який, що знайдеться першим —</option>
+            {% for b in branches %}
+            <option value="{{ b.guid }}" data-name="{{ b.name }}">{{ b.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="preferred_branch_name" id="branch-name-hidden">
+        {% if not branches %}
+        <div class="hint">⚠️ Не вдалось завантажити список підрозділів з API — можна залишити порожнім</div>
+        {% endif %}
+
+        <label>Інтервал перевірки (секунд)</label>
+        <input type="number" name="check_interval_seconds" value="60" min="10" required>
+        <div class="hint">Наприклад: 60 = раз на хвилину</div>
+
+        <button type="submit">Створити профіль</button>
+    </form>
+
+    <div class="profiles">
+        <h2>Існуючі профілі</h2>
+        {% if profiles %}
+            {% for p in profiles %}
+            <div class="profile-item">📄 <code>{{ p }}.yaml</code></div>
+            {% endfor %}
+            <p class="hint">
+                Для запуску: додайте сервіс для профілю в docker-compose.yml
+                (див. приклад у README) і виконайте <code>docker compose up -d</code>
+            </p>
+        {% else %}
+            <p class="hint">Профілів ще немає</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function updateBranchName() {
+            const select = document.getElementById('branch-select');
+            const selected = select.options[select.selectedIndex];
+            document.getElementById('branch-name-hidden').value = selected.getAttribute('data-name') || '';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+services:
+
+  webui:
+    build:
+      context: .
+      dockerfile: webui/Dockerfile
+    container_name: cnap-webui
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./configs:/configs
+    environment:
+      - CONFIGS_DIR=/configs
+
+  checker-person1:
+    build: .
+    container_name: ybroslavskyi
+    environment:
+      - CONFIG_FILE=/configs/person1.yaml
+      - CHECK_INTERVAL_SECONDS=60
+      - START_HOUR=5
+      - TZ=Europe/Kyiv
+    volumes:
+      - ./configs:/configs:ro
+      - ./logs:/logs
+    restart: no
+    depends_on:
+      - webui
+
+  checker-person2:
+    build: .
+    container_name: stymtsiv
+    environment:
+      - CONFIG_FILE=/configs/stymtsiv.yaml
+      - CHECK_INTERVAL_SECONDS=10 
+      - START_HOUR=5
+      - TZ=Europe/Kyiv
+    volumes:
+      - ./configs:/configs:ro
+      - ./logs:/logs
+    restart: no
+    depends_on:
+      - webui
