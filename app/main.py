@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import logging
+from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -41,6 +42,27 @@ def setup_logging(profile_name: str) -> logging.Logger:
 
     return logger
 
+def wait_until_start_hour(start_hour: int, logger: logging.Logger) -> None:
+    """
+    Блокує виконання до найближчого настання заданої години доби.
+    Якщо ця година вже минула сьогодні — чекає до завтра.
+    Перевіряє кожні 30 секунд, чи не зупинили контейнер (для швидкої реакції
+    на Ctrl+C / docker stop), замість одного довгого sleep().
+    """
+    now = datetime.now()
+    target = now.replace(hour=start_hour, minute=0, second=0, microsecond=0)
+    if target <= now:
+        target += timedelta(days=1)
+
+    logger.info(
+        "START_HOUR=%d задано. Очікую до %s (зараз %s)...",
+        start_hour, target.strftime("%Y-%m-%d %H:%M:%S"), now.strftime("%H:%M:%S"),
+    )
+
+    while datetime.now() < target:
+        time.sleep(min(30, (target - datetime.now()).total_seconds()))
+
+    logger.info("Настав час %02d:00 — починаю перевірку слотів.", start_hour)
 
 def main():
     config_file = os.environ.get("CONFIG_FILE")
@@ -61,6 +83,10 @@ def main():
         profile.name, profile.job_group_name, profile.job_name,
         profile.check_interval_seconds,
     )
+
+    start_hour_raw = os.environ.get("START_HOUR")
+    if start_hour_raw is not None:
+        wait_until_start_hour(int(start_hour_raw), logger)
 
     while True:
         try:
