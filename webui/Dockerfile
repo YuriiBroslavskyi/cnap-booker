@@ -6,6 +6,7 @@ COPY webui/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/models.py /app/models.py
+COPY app/config_loader.py /app/config_loader.py
 COPY webui/ .
 
 ENV PYTHONPATH=/app

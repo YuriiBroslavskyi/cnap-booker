@@ -1,0 +1,32 @@
+# Copy to config.yaml and replace every value marked with TODO.
+cnap:
+  api_url: "https://cnap_lviv.qsolutions.com.ua:2651"
+  frontend_origin: "https://cnap-lviv.qsolutions.com.ua:2657"
+  # The current CNAP endpoint requires this setting. Turn it on when its TLS
+  # certificate chain is valid for your environment.
+  verify_ssl: false
+  request_timeout_seconds: 15
+
+defaults:
+  timezone: Europe/Kyiv
+  start_hour: 5
+  check_interval_seconds: 60
+  preferred_hours: ["09:00", "12:00"]
+
+# Defaults used to prefill the web form; profiles can use another service.
+webui:
+  default_job_group_name: "Паспортні послуги"
+  default_job_name: "Паспорт громадянина України (ID-картка) / для виїзду за кордон"
+
+profiles:
+  - name: person1
+    full_name: "TODO"
+    phone_digits: "732957199"
+    email: "example@mail.com"
+    job_group_name: "Отримати готовий результат"
+    job_name: "Паспорт громадянина України (ID-картка) / для виїзду за кордон"
+    preferred_branch_guid: "ade47bf5-2192-4b6e-b77c-2fa65cdb06a2"
+    preferred_branch_name: "пр.Ч.Калини, 72 А Терпідрозділ ЦНАП"
+    # Optional overrides for defaults:
+    # check_interval_seconds: 10
+    # start_hour: 6

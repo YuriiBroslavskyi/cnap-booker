@@ -3,13 +3,13 @@ Booker: створює реальний попередній запис (тал�
 """
 import logging
 
-from models import Branch, TimeSlot, PersonProfile
+from models import Branch, CnapSettings, TimeSlot, PersonProfile
 from api_client import save_prelim_order, CnapApiError
 
 logger = logging.getLogger("cnap.booker")
 
 
-def book_slot(profile: PersonProfile, branch: Branch, slot: TimeSlot) -> bool:
+def book_slot(profile: PersonProfile, branch: Branch, slot: TimeSlot, settings: CnapSettings) -> bool:
     """
     Виконує бронювання. Повертає True при успіху, False при помилці.
     """
@@ -20,6 +20,7 @@ def book_slot(profile: PersonProfile, branch: Branch, slot: TimeSlot) -> bool:
             full_name=profile.full_name,
             phone_with_country_code=profile.full_phone,
             email=profile.email,
+            settings=settings,
             identification_number="",
         )
     except CnapApiError as exc:

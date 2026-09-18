@@ -5,13 +5,13 @@ Checker: знаходить найкращий доступний слот дл�
 import logging
 from typing import Optional, Tuple
 
-from models import Branch, TimeSlot, PersonProfile
+from models import Branch, CnapSettings, TimeSlot, PersonProfile
 from api_client import get_branches, CnapApiError
 
 logger = logging.getLogger("cnap.checker")
 
 
-def find_best_slot(profile: PersonProfile) -> Optional[Tuple[Branch, TimeSlot]]:
+def find_best_slot(profile: PersonProfile, settings: CnapSettings) -> Optional[Tuple[Branch, TimeSlot]]:
     """
     Повертає (branch, slot) для найкращого варіанту, або None якщо ніде немає слотів.
 
@@ -23,7 +23,7 @@ def find_best_slot(profile: PersonProfile) -> Optional[Tuple[Branch, TimeSlot]]:
       (з пріоритетом на preferred_hours, якщо заданий).
     """
     try:
-        branches = get_branches(profile.job_name, profile.job_group_name)
+        branches = get_branches(profile.job_name, profile.job_group_name, settings)
     except CnapApiError as exc:
         logger.error("Помилка отримання списку підрозділів: %s", exc)
         return None

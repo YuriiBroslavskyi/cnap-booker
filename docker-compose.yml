@@ -8,35 +8,31 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./configs:/configs
+      - ./config:/config
     environment:
-      - CONFIGS_DIR=/configs
+      - CONFIG_FILE=/config/config.yaml
 
-  checker-person1:
+  checker-ybroslavskyi:
     build: .
     container_name: ybroslavskyi
     environment:
-      - CONFIG_FILE=/configs/person1.yaml
-      - CHECK_INTERVAL_SECONDS=60
-      - START_HOUR=5
-      - TZ=Europe/Kyiv
+      - CONFIG_FILE=/config/config.yaml
+      - PROFILE_NAME=ybroslavskyi
     volumes:
-      - ./configs:/configs:ro
+      - ./config:/config:ro
       - ./logs:/logs
     restart: no
     depends_on:
       - webui
 
-  checker-person2:
+  checker-stymtsiv:
     build: .
     container_name: stymtsiv
     environment:
-      - CONFIG_FILE=/configs/stymtsiv.yaml
-      - CHECK_INTERVAL_SECONDS=10 
-      - START_HOUR=5
-      - TZ=Europe/Kyiv
+      - CONFIG_FILE=/config/config.yaml
+      - PROFILE_NAME=stymtsiv
     volumes:
-      - ./configs:/configs:ro
+      - ./config:/config:ro
       - ./logs:/logs
     restart: no
     depends_on:

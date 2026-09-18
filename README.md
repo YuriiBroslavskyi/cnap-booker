@@ -10,51 +10,64 @@
   беручи найранішу дату/час).
 - **Booker** — як тільки слот знайдено, одразу виконує реальне бронювання
   (`savePrelimOrder`) і зупиняється.
-- Кожна людина = окремий Docker-контейнер зі своїм конфігом і своїм
-  інтервалом перевірки — процеси повністю незалежні.
+- Кожна людина = окремий Docker-контейнер, який читає свій профіль зі
+  спільного конфігу — процеси повністю незалежні.
 
 ## Швидкий старт
 
-### 1. Створіть профіль через веб-форму
+### 1. Створіть спільний конфіг
+
+```bash
+cp config/config.example.yaml config/config.yaml
+```
+
+Для перенесення наявних файлів профілів виконайте:
+
+```bash
+python app/migrate_profiles.py
+```
+
+Або відредагуйте перший профіль чи видаліть його та створіть профілі через форму.
+`config/config.yaml` містить персональні дані та ігнорується Git.
+
+### 2. Створіть профіль через веб-форму
 
 ```bash
 docker compose up -d webui
 ```
 
 Відкрийте http://localhost:8080, заповніть форму — вона сама підтягне
-актуальний список підрозділів і згенерує `configs/<ім'я>.yaml`.
+актуальний список підрозділів і додасть профіль до `config/config.yaml`.
 
-Або скопіюйте вручну:
-```bash
-cp configs/person1.example.yaml configs/person1.yaml
-# і відредагуйте своїми даними
-```
+### 3. Додайте контейнер для цього профілю
 
-### 2. Додайте контейнер для цього профілю
-
-У `docker-compose.yml` скопіюйте блок `checker-person1`, змініть:
+У `docker-compose.yml` скопіюйте блок `checker-ybroslavskyi`, змініть:
+- назву сервісу, наприклад `checker-olena`
 - `container_name`
-- `CONFIG_FILE` (шлях до нового `.yaml`)
-- `CHECK_INTERVAL_SECONDS` (за бажанням — інтервал саме для цієї людини)
+- `PROFILE_NAME` — ключ профілю з `config/config.yaml`
 
-### 3. Запустіть
+Усі значення профілю, включно з інтервалом і годиною старту, беруться лише з
+`config/config.yaml`. Кожен сервіс монтує той самий файл лише для читання; часовий
+пояс також задається там, а не через Docker env.
+
+### 4. Запустіть
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Перегляд логів
+### 5. Перегляд логів
 
 ```bash
-docker compose logs -f checker-person1
+docker compose logs -f checker-ybroslavskyi
 
-tail -f logs/person1.log
+tail -f logs/ybroslavskyi.log
 ```
 
-### 5. Зупинка пошуку для конкретної людини
+### 6. Зупинка пошуку для конкретної людини
 
 ```bash
-docker compose stop checker-person1
+docker compose stop checker-ybroslavskyi
 ```
 
 ## Важливо

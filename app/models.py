@@ -4,8 +4,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-VERIFY_SSL = False
-
 ATTRIBUTE_GUIDS = {
     "full_name": "cf63e2de-f3cc-4e51-adbe-30919bbfb5e1",       # Person.FullName
     "identification_number": "dc56c43c-9ba0-4a47-a304-921e512350f2",  # Person.IdentificationNumber
@@ -13,20 +11,31 @@ ATTRIBUTE_GUIDS = {
     "email": "ca781cb6-9a95-44fc-ab91-0ccf68eeee08",            # Person.Email
 }
 
-BASE_API_URL = "https://cnap_lviv.qsolutions.com.ua:2651"
-FRONTEND_ORIGIN = "https://cnap-lviv.qsolutions.com.ua:2657"
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
 
-DEFAULT_HEADERS = {
-    "accept": "application/json",
-    "content-type": "application/json",
-    "accept-language": "en-US,en;q=0.9",
-    "origin": FRONTEND_ORIGIN,
-    "referer": f"{FRONTEND_ORIGIN}/",
-    "user-agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-    ),
-}
+
+@dataclass
+class CnapSettings:
+    api_url: str
+    frontend_origin: str
+    verify_ssl: bool = False
+    request_timeout_seconds: float = 15.0
+    accept_language: str = "en-US,en;q=0.9"
+    user_agent: str = DEFAULT_USER_AGENT
+
+    @property
+    def headers(self) -> dict:
+        return {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "accept-language": self.accept_language,
+            "origin": self.frontend_origin,
+            "referer": f"{self.frontend_origin}/",
+            "user-agent": self.user_agent,
+        }
 
 
 @dataclass
@@ -84,6 +93,8 @@ class PersonProfile:
     preferred_branch_name: Optional[str] = None
     preferred_hours: Optional[tuple] = ("09:00", "12:00")
     check_interval_seconds: int = 60
+    start_hour: Optional[int] = None
+    timezone: str = "Europe/Kyiv"
 
     @property
     def full_phone(self) -> str:

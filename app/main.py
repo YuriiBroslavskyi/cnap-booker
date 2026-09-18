@@ -2,16 +2,15 @@
 Точка входу воркера. Один контейнер = один профіль (одна людина).
 
 Env-змінні:
-  CONFIG_FILE               — шлях до YAML-конфігу профілю (обов'язково)
-  CHECK_INTERVAL_SECONDS    — інтервал перевірки в секундах (опційно,
-                               якщо не задано — береться зі значення в самому
-                               конфізі, або 60 секунд за замовчуванням)
+  CONFIG_FILE               — шлях до спільного YAML-конфігу (обов'язково)
+  PROFILE_NAME              — ключ профілю в YAML-конфігу (обов'язково)
 """
 import os
 import sys
 import time
 import logging
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -42,14 +41,15 @@ def setup_logging(profile_name: str) -> logging.Logger:
 
     return logger
 
-def wait_until_start_hour(start_hour: int, logger: logging.Logger) -> None:
+def wait_until_start_hour(start_hour: int, timezone: str, logger: logging.Logger) -> None:
     """
     Блокує виконання до найближчого настання заданої години доби.
     Якщо ця година вже минула сьогодні — чекає до завтра.
     Перевіряє кожні 30 секунд, чи не зупинили контейнер (для швидкої реакції
     на Ctrl+C / docker stop), замість одного довгого sleep().
     """
-    now = datetime.now()
+    zone = ZoneInfo(timezone)
+    now = datetime.now(zone)
     target = now.replace(hour=start_hour, minute=0, second=0, microsecond=0)
     if target <= now:
         target += timedelta(days=1)
@@ -59,8 +59,8 @@ def wait_until_start_hour(start_hour: int, logger: logging.Logger) -> None:
         start_hour, target.strftime("%Y-%m-%d %H:%M:%S"), now.strftime("%H:%M:%S"),
     )
 
-    while datetime.now() < target:
-        time.sleep(min(30, (target - datetime.now()).total_seconds()))
+    while datetime.now(zone) < target:
+        time.sleep(min(30, (target - datetime.now(zone)).total_seconds()))
 
     logger.info("Настав час %02d:00 — починаю перевірку слотів.", start_hour)
 
@@ -70,12 +70,11 @@ def main():
         print("Помилка: не задано env-змінну CONFIG_FILE", file=sys.stderr)
         sys.exit(1)
 
-    profile = load_profile(config_file)
-
-
-    env_interval = os.environ.get("CHECK_INTERVAL_SECONDS")
-    if env_interval:
-        profile.check_interval_seconds = int(env_interval)
+    profile_name = os.environ.get("PROFILE_NAME")
+    if not profile_name:
+        print("Помилка: не задано env-змінну PROFILE_NAME", file=sys.stderr)
+        sys.exit(1)
+    profile, settings = load_profile(config_file, profile_name)
 
     logger = setup_logging(profile.name)
     logger.info(
@@ -84,19 +83,18 @@ def main():
         profile.check_interval_seconds,
     )
 
-    start_hour_raw = os.environ.get("START_HOUR")
-    if start_hour_raw is not None:
-        wait_until_start_hour(int(start_hour_raw), logger)
+    if profile.start_hour is not None:
+        wait_until_start_hour(profile.start_hour, profile.timezone, logger)
 
     while True:
         try:
-            result = find_best_slot(profile)
+            result = find_best_slot(profile, settings)
             if result:
                 branch, slot = result
                 logger.info(
                     "[%s] Знайдено слот — виконую бронювання...", profile.name
                 )
-                success = book_slot(profile, branch, slot)
+                success = book_slot(profile, branch, slot, settings)
                 if success:
                     logger.info(
                         "[%s] Задача виконана, воркер завершує роботу.", profile.name

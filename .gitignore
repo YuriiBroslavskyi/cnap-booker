@@ -1,3 +1,4 @@
+config/config.yaml
 configs/*.yaml
 !configs/*.example.yaml
 

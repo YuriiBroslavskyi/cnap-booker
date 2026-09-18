@@ -17,7 +17,7 @@
 </head>
 <body>
     <h1>Створити профіль для пошуку запису в ЦНАП</h1>
-    <p>Послуга фіксована: <code>Паспорт громадянина України (ID-картка) / для виїзду за кордон</code></p>
+    <p>Профіль буде додано до спільного <code>config.yaml</code>.</p>
 
     <form method="post" action="/create">
         <label>Ключ профілю (латиницею, без пробілів)</label>
@@ -34,6 +34,12 @@
         <label>Email</label>
         <input type="email" name="email" required>
 
+        <label>Група послуг</label>
+        <input type="text" name="job_group_name" value="{{ default_job_group }}" required>
+
+        <label>Послуга</label>
+        <input type="text" name="job_name" value="{{ default_job_name }}" required>
+
         <label>Бажаний підрозділ (опційно)</label>
         <select name="preferred_branch_guid" id="branch-select" onchange="updateBranchName()">
             <option value="" data-name="">— будь-який, що знайдеться першим —</option>
@@ -47,8 +53,12 @@
         {% endif %}
 
         <label>Інтервал перевірки (секунд)</label>
-        <input type="number" name="check_interval_seconds" value="60" min="10" required>
+        <input type="number" name="check_interval_seconds" value="{{ default_interval }}" min="1" required>
         <div class="hint">Наприклад: 60 = раз на хвилину</div>
+
+        <label>Година старту (опційно)</label>
+        <input type="number" name="start_hour" min="0" max="23" placeholder="Наприклад, 5">
+        <div class="hint">Якщо лишити порожнім, використовується глобальна година старту.</div>
 
         <button type="submit">Створити профіль</button>
     </form>
@@ -57,11 +67,11 @@
         <h2>Існуючі профілі</h2>
         {% if profiles %}
             {% for p in profiles %}
-            <div class="profile-item">📄 <code>{{ p }}.yaml</code></div>
+            <div class="profile-item">👤 <code>{{ p }}</code></div>
             {% endfor %}
             <p class="hint">
                 Для запуску: додайте сервіс для профілю в docker-compose.yml
-                (див. приклад у README) і виконайте <code>docker compose up -d</code>
+                з його ключем <code>PROFILE_NAME</code> (див. README).
             </p>
         {% else %}
             <p class="hint">Профілів ще немає</p>
